@@ -114,7 +114,7 @@ export default function StockReport({ products, branches, ledger }) {
           }}
         >
           <BookOpen size={15} />
-          Stock Ledger
+          All Transactions
         </button>
         <button 
           className="btn" 
@@ -144,15 +144,15 @@ export default function StockReport({ products, branches, ledger }) {
         </button>
       </div>
 
-      {/* Search Filter Header */}
-      <div className="glass-card" style={{ marginBottom: '24px', padding: '16px 24px' }}>
-        <div className="flex-between" style={{ flexWrap: 'wrap', gap: '16px' }}>
+      {/* Combined Report Card: Search Filter & Tab Content */}
+      <div className="glass-card animate-scaleIn">
+        <div className="flex-between" style={{ flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
           <div>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Report Category
             </span>
             <h3 style={{ fontSize: '1.1rem', fontWeight: '600', textTransform: 'capitalize' }}>
-              {activeTab.replace('-', ' ')} Summary Statement
+              {activeTab === 'ledger' ? 'All Transactions' : activeTab.replace('-', ' ')} Summary Statement
             </h3>
           </div>
 
@@ -177,10 +177,6 @@ export default function StockReport({ products, branches, ledger }) {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Content Renderer based on Tabs */}
-      <div className="glass-card animate-scaleIn">
         
         {/* Tab 1: Warehouse Stock */}
         {activeTab === 'warehouse' && (
@@ -269,7 +265,7 @@ export default function StockReport({ products, branches, ledger }) {
           </div>
         )}
 
-        {/* Tab 3: Stock Ledger */}
+        {/* Tab 3: All Transactions */}
         {activeTab === 'ledger' && (
           <div className="table-container">
             <table className="custom-table">
@@ -319,7 +315,7 @@ export default function StockReport({ products, branches, ledger }) {
                 ) : (
                   <tr>
                     <td colSpan="9" style={{ textAlign: 'center', padding: '30px 0', color: 'var(--text-muted)' }}>
-                      No ledger operations recorded.
+                      No transactions recorded.
                     </td>
                   </tr>
                 )}

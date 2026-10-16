@@ -61,6 +61,14 @@ export default function StockReport({ products, branches, ledger }) {
     o.sku.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const tabTitles = {
+    'warehouse': 'Warehouse',
+    'branch-wise': 'Branch-wise',
+    'ledger': 'All Transactions',
+    'inward': 'Incoming Stock',
+    'outward': 'Outgoing Stock'
+  };
+
   return (
     <div className="stock-report-view animate-fadeIn">
       {/* Header */}
@@ -127,7 +135,7 @@ export default function StockReport({ products, branches, ledger }) {
           }}
         >
           <ArrowDownLeft size={15} />
-          Inward Logs
+          Incoming Stock
         </button>
         <button 
           className="btn" 
@@ -140,7 +148,7 @@ export default function StockReport({ products, branches, ledger }) {
           }}
         >
           <ArrowUpRight size={15} />
-          Outward Logs
+          Outgoing Stock
         </button>
       </div>
 
@@ -152,7 +160,7 @@ export default function StockReport({ products, branches, ledger }) {
               Report Category
             </span>
             <h3 style={{ fontSize: '1.1rem', fontWeight: '600', textTransform: 'capitalize' }}>
-              {activeTab === 'ledger' ? 'All Transactions' : activeTab.replace('-', ' ')} Summary Statement
+              {(tabTitles[activeTab] || activeTab.replace('-', ' '))} Summary Statement
             </h3>
           </div>
 
@@ -324,7 +332,7 @@ export default function StockReport({ products, branches, ledger }) {
           </div>
         )}
 
-        {/* Tab 4: Inward Logs */}
+        {/* Tab 4: Incoming Stock */}
         {activeTab === 'inward' && (
           <div className="table-container">
             <table className="custom-table">
@@ -355,7 +363,7 @@ export default function StockReport({ products, branches, ledger }) {
                 ) : (
                   <tr>
                     <td colSpan="7" style={{ textAlign: 'center', padding: '30px 0', color: 'var(--text-muted)' }}>
-                      No inward operations recorded.
+                      No incoming stock recorded.
                     </td>
                   </tr>
                 )}
@@ -364,7 +372,7 @@ export default function StockReport({ products, branches, ledger }) {
           </div>
         )}
 
-        {/* Tab 5: Outward Logs */}
+        {/* Tab 5: Outgoing Stock */}
         {activeTab === 'outward' && (
           <div className="table-container">
             <table className="custom-table">
@@ -397,7 +405,7 @@ export default function StockReport({ products, branches, ledger }) {
                 ) : (
                   <tr>
                     <td colSpan="7" style={{ textAlign: 'center', padding: '30px 0', color: 'var(--text-muted)' }}>
-                      No outward operations recorded.
+                      No outgoing stock recorded.
                     </td>
                   </tr>
                 )}

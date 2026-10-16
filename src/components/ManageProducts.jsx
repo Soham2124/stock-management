@@ -1,24 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Barcode, 
   Search, 
   Plus, 
   Pencil, 
   Trash2, 
   X, 
-  Package, 
-  Tag, 
-  DollarSign, 
-  Check, 
-  AlertCircle
+  Package,
+  Filter,
+  RotateCcw,
+  MoreVertical
 } from 'lucide-react';
+import CustomDropdown from './CustomDropdown';
 
 export default function ManageProducts({ products, setProducts }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [barcodeSearch, setBarcodeSearch] = useState('');
-  const [selectedProductForScan, setSelectedProductForScan] = useState(null);
-  const [scanMessage, setScanMessage] = useState(null);
+  const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [expandedRowId, setExpandedRowId] = useState(null);
+  const [openMenuProductId, setOpenMenuProductId] = useState(null);
+
+  useEffect(() => {
+    const handleOutsideClick = () => setOpenMenuProductId(null);
+    if (openMenuProductId !== null) {
+      window.addEventListener('click', handleOutsideClick);
+      return () => window.removeEventListener('click', handleOutsideClick);
+    }
+  }, [openMenuProductId]);
 
   const toggleExpandRow = (id) => {
     setExpandedRowId(prev => prev === id ? null : id);
@@ -39,46 +45,8 @@ export default function ManageProducts({ products, setProducts }) {
   const [barcode, setBarcode] = useState('');
   const [baseUnit, setBaseUnit] = useState('Piece');
   const [openingQty, setOpeningQty] = useState('');
-
-  // Handle Quick Barcode Lookup
-  const handleBarcodeLookup = (e) => {
-    e.preventDefault();
-    if (!barcodeSearch) return;
-
-    const found = products.find(p => p.barcode === barcodeSearch || p.sku.toLowerCase() === barcodeSearch.toLowerCase());
-    
-    if (found) {
-      setSelectedProductForScan({ ...found });
-      setScanMessage({ type: 'success', text: `Product Found: ${found.name}` });
-    } else {
-      setSelectedProductForScan(null);
-      setScanMessage({ type: 'error', text: `Barcode/SKU "${barcodeSearch}" not found. Open "+ Register Product" to add.` });
-    }
-  };
-
-  const handleQuickUpdate = (e) => {
-    e.preventDefault();
-    if (!selectedProductForScan) return;
-
-    setProducts(products.map(p => {
-      if (p.id === selectedProductForScan.id) {
-        return {
-          ...p,
-          purchaseRate: parseFloat(selectedProductForScan.purchaseRate) || 0,
-          saleRate: parseFloat(selectedProductForScan.saleRate) || 0,
-          openingQty: parseInt(selectedProductForScan.openingQty) || 0
-        };
-      }
-      return p;
-    }));
-
-    setScanMessage({ type: 'success', text: 'Product inventory thresholds adjusted successfully!' });
-    setTimeout(() => {
-      setSelectedProductForScan(null);
-      setBarcodeSearch('');
-      setScanMessage(null);
-    }, 1500);
-  };
+  const [minQty, setMinQty] = useState('');
+  const [maxQty, setMaxQty] = useState('');
 
   // Open Modal for Create or Edit
   const openModal = (product = null) => {
@@ -93,7 +61,9 @@ export default function ManageProducts({ products, setProducts }) {
       setSaleRate(product.saleRate);
       setBarcode(product.barcode);
       setBaseUnit(product.baseUnit);
-      setOpeningQty(product.openingQty);
+      setOpeningQty(product.openingQty ?? 0);
+      setMinQty(product.minQty !== undefined ? product.minQty : 10);
+      setMaxQty(product.maxQty !== undefined ? product.maxQty : 100);
     } else {
       setEditingProduct(null);
       setProductName('');
@@ -103,9 +73,11 @@ export default function ManageProducts({ products, setProducts }) {
       setSku(`SKU-${Math.floor(1000 + Math.random() * 9000)}`);
       setPurchaseRate('');
       setSaleRate('');
-      setBarcode(barcodeSearch || '');
+      setBarcode('');
       setBaseUnit('Piece');
-      setOpeningQty('');
+      setOpeningQty('100');
+      setMinQty('10');
+      setMaxQty('100');
     }
     setIsModalOpen(true);
   };
@@ -129,7 +101,9 @@ export default function ManageProducts({ products, setProducts }) {
             saleRate: parseFloat(saleRate) || 0,
             barcode,
             baseUnit,
-            openingQty: parseInt(openingQty) || 0
+            openingQty: parseInt(openingQty, 10) || p.openingQty || 0,
+            minQty: parseInt(minQty, 10) || 0,
+            maxQty: parseInt(maxQty, 10) || 0
           };
         }
         return p;
@@ -147,7 +121,9 @@ export default function ManageProducts({ products, setProducts }) {
         saleRate: parseFloat(saleRate) || 0,
         barcode: barcode || Math.floor(10000 + Math.random() * 90000).toString(),
         baseUnit,
-        openingQty: parseInt(openingQty) || 0,
+        openingQty: parseInt(openingQty, 10) || 0,
+        minQty: parseInt(minQty, 10) || 0,
+        maxQty: parseInt(maxQty, 10) || 0,
         asOnDate: new Date().toISOString().split('T')[0]
       };
       setProducts([...products, newProd]);
@@ -163,143 +139,41 @@ export default function ManageProducts({ products, setProducts }) {
     }
   };
 
-  // Filter products by SKU, name, brand
-  const filteredProducts = products.filter(p => 
-    p.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
+
+  // Filter products by SKU, name, brand, category, barcode, and selected category filter
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = 
+      p.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.barcode?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesCategory = categoryFilter === 'ALL' || p.category === categoryFilter;
+
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="manage-products-view animate-fadeIn">
-      {/* Title */}
-
-      {/* Barcode scan manager */}
-      <div 
-        className="glass-card animate-fadeIn" 
-        style={{ 
-          marginBottom: '28px', 
-          padding: '24px', 
-          borderRadius: '16px', 
-          background: 'var(--bg-card)', 
-          border: '1px solid var(--border-color)',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
-          <div style={{ 
-            width: '44px', 
-            height: '44px', 
-            borderRadius: '12px', 
-            background: 'rgba(29, 78, 216, 0.08)', 
-            color: 'var(--primary-color)', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            flexShrink: 0
-          }}>
-            <Barcode size={22} />
-          </div>
-          <div>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--text-main)', margin: 0 }}>
-              Barcode Quick Product Manager
-            </h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
-              Scan a barcode or enter barcode string below (e.g. <code style={{ cursor: 'pointer', color: 'var(--primary-color)', background: 'rgba(29, 78, 216, 0.08)', padding: '2px 6px', borderRadius: '4px' }} onClick={() => setBarcodeSearch('12345')}>12345</code> or <code style={{ cursor: 'pointer', color: 'var(--primary-color)', background: 'rgba(29, 78, 216, 0.08)', padding: '2px 6px', borderRadius: '4px' }} onClick={() => setBarcodeSearch('SKU-BOX-M')}>SKU-BOX-M</code>) to quickly adjust stock, check unit details, or manage price rates.
-            </p>
-          </div>
+      {/* Title Header */}
+      <div className="flex-between" style={{ marginBottom: '28px' }}>
+        <div>
+          <h1 style={{ fontSize: '2rem', marginBottom: '4px' }}>Manage Products</h1>
+          <p style={{ color: 'var(--text-secondary)' }}>Configure product catalog, master pricing, and inventory levels.</p>
         </div>
-
-        <form onSubmit={handleBarcodeLookup} style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ position: 'relative', flex: '1', minWidth: '280px', maxWidth: '420px' }}>
-            <Barcode size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-            <input 
-              type="text" 
-              className="form-input" 
-              placeholder="Scan or enter barcode (e.g. 12345)..."
-              value={barcodeSearch}
-              onChange={(e) => setBarcodeSearch(e.target.value)}
-              style={{ width: '100%', paddingLeft: '42px', height: '44px', borderRadius: '10px', fontSize: '0.9rem' }}
-            />
-          </div>
-          <button type="submit" className="btn btn-primary" style={{ height: '44px', padding: '0 20px', borderRadius: '10px', fontWeight: '500' }}>
-            Lookup / Scan
-          </button>
-          {selectedProductForScan && (
-            <button 
-              type="button" 
-              className="btn btn-secondary" 
-              onClick={() => { setSelectedProductForScan(null); setBarcodeSearch(''); setScanMessage(null); }}
-              style={{ height: '44px', borderRadius: '10px', padding: '0 16px' }}
-            >
-              Clear Scan
-            </button>
-          )}
-        </form>
-
-        {scanMessage && (
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px', 
-            marginTop: '16px', 
-            padding: '10px 14px', 
-            borderRadius: '8px',
-            fontSize: '0.85rem',
-            background: scanMessage.type === 'success' ? 'var(--bg-success)' : 'var(--bg-danger)',
-            color: scanMessage.type === 'success' ? 'var(--color-success)' : 'var(--color-danger)',
-            border: `1px solid ${scanMessage.type === 'success' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(244, 63, 94, 0.2)'}`
-          }}>
-            {scanMessage.type === 'success' ? <Check size={16} /> : <AlertCircle size={16} />}
-            <span>{scanMessage.text}</span>
-          </div>
-        )}
-
-        {/* Quick Edit form when lookup is successful */}
-        {selectedProductForScan && (
-          <form onSubmit={handleQuickUpdate} className="animate-scaleIn" style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid var(--border-color)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
-            <div>
-              <label className="form-label">Purchase Rate (₹)</label>
-              <input 
-                type="number" 
-                className="form-input" 
-                value={selectedProductForScan.purchaseRate}
-                onChange={(e) => setSelectedProductForScan({ ...selectedProductForScan, purchaseRate: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="form-label">Sale Rate (₹)</label>
-              <input 
-                type="number" 
-                className="form-input" 
-                value={selectedProductForScan.saleRate}
-                onChange={(e) => setSelectedProductForScan({ ...selectedProductForScan, saleRate: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="form-label">Opening Qty</label>
-              <input 
-                type="number" 
-                className="form-input" 
-                value={selectedProductForScan.openingQty}
-                onChange={(e) => setSelectedProductForScan({ ...selectedProductForScan, openingQty: e.target.value })}
-              />
-            </div>
-            <div>
-              <button type="submit" className="btn btn-primary" style={{ width: '100%', height: '42px' }}>
-                Quick Update Rates
-              </button>
-            </div>
-          </form>
-        )}
+        <button className="btn btn-primary" onClick={() => openModal()}>
+          <Plus size={18} />
+          <span>Add Product</span>
+        </button>
       </div>
 
       {/* Catalog List */}
       <div className="glass-card">
-        <div className="flex-between" style={{ marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: '600' }}>Registered Product Catalog</h3>
-          <div style={{ position: 'relative', width: '280px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+          {/* Search bar */}
+          <div style={{ position: 'relative', flex: '1', minWidth: '240px' }}>
             <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
             <input 
               type="text" 
@@ -307,13 +181,41 @@ export default function ManageProducts({ products, setProducts }) {
               placeholder="Search by SKU, Brand, Name..." 
               value={searchTerm} 
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ paddingLeft: '36px', height: '40px' }}
+              style={{ width: '100%', paddingLeft: '36px', height: '40px' }}
             />
           </div>
+
+          {/* Category Filter on the right side of the search bar */}
+          <CustomDropdown
+            value={categoryFilter}
+            onChange={(val) => setCategoryFilter(val)}
+            options={[
+              { value: 'ALL', label: 'All Categories', count: products.length },
+              ...categories.map(cat => ({
+                value: cat,
+                label: cat,
+                count: products.filter(p => p.category === cat).length
+              }))
+            ]}
+            icon={<Filter size={15} />}
+            placeholder="All Categories"
+            minWidth="180px"
+          />
+
+          {/* Reset button on the right side */}
+          <button 
+            type="button"
+            className="btn-reset"
+            onClick={() => { setCategoryFilter('ALL'); setSearchTerm(''); }}
+            title="Reset search and filters"
+          >
+            <RotateCcw size={15} />
+            <span>Reset</span>
+          </button>
         </div>
 
         {/* Catalog Table */}
-        <div className="table-container">
+        <div className="table-container" style={{ minHeight: '300px' }}>
           <table className="custom-table">
             <thead>
               <tr>
@@ -324,15 +226,18 @@ export default function ManageProducts({ products, setProducts }) {
                 <th>SKU Code</th>
                 <th>Purchase Rate</th>
                 <th>Sale Rate</th>
-                <th>Added Date</th>
-                <th>Opening Qty</th>
+                <th>Minimum Qty</th>
+                <th>Maximum Qty</th>
                 <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredProducts.length > 0 ? (
-                filteredProducts.map(p => {
+                filteredProducts.map((p, idx) => {
                   const isExpanded = expandedRowId === p.id;
+                  const isMenuOpen = openMenuProductId === p.id;
+                  const isLastRows = idx >= filteredProducts.length - 2 && filteredProducts.length > 2;
+
                   return (
                     <React.Fragment key={p.id}>
                       <tr style={{ background: isExpanded ? 'rgba(29, 78, 216, 0.03)' : undefined }}>
@@ -356,25 +261,69 @@ export default function ManageProducts({ products, setProducts }) {
                         <td style={{ fontWeight: '600', borderBottom: isExpanded ? 'none' : undefined }}>{p.sku}</td>
                         <td style={{ fontWeight: '500', borderBottom: isExpanded ? 'none' : undefined }}>₹{p.purchaseRate.toFixed(2)}</td>
                         <td style={{ fontWeight: '500', borderBottom: isExpanded ? 'none' : undefined }}>₹{p.saleRate.toFixed(2)}</td>
-                        <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)', borderBottom: isExpanded ? 'none' : undefined }}>{p.asOnDate}</td>
-                        <td style={{ fontWeight: '600', borderBottom: isExpanded ? 'none' : undefined }}>{p.openingQty}</td>
-                        <td style={{ borderBottom: isExpanded ? 'none' : undefined }}>
-                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                        <td style={{ fontWeight: '600', borderBottom: isExpanded ? 'none' : undefined }}>{p.minQty !== undefined ? p.minQty : 10}</td>
+                        <td style={{ fontWeight: '600', borderBottom: isExpanded ? 'none' : undefined }}>{p.maxQty !== undefined ? p.maxQty : 100}</td>
+                        <td style={{ position: 'relative', textAlign: 'right', borderBottom: isExpanded ? 'none' : undefined }} onClick={(e) => e.stopPropagation()}>
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', position: 'relative' }}>
                             <button 
+                              type="button"
                               className="btn btn-secondary btn-icon-only"
-                              title="Edit product parameters"
-                              onClick={() => openModal(p)}
+                              title="Actions"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenMenuProductId(prev => prev === p.id ? null : p.id);
+                              }}
+                              style={{
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '8px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: isMenuOpen ? 'rgba(59, 130, 246, 0.15)' : undefined,
+                                borderColor: isMenuOpen ? 'var(--primary-color)' : undefined,
+                                color: isMenuOpen ? 'var(--primary-color)' : 'var(--text-secondary)'
+                              }}
                             >
-                              <Pencil size={15} />
+                              <MoreVertical size={16} />
                             </button>
-                            <button 
-                              className="btn btn-secondary btn-icon-only"
-                              title="Delete catalog item"
-                              onClick={() => handleDeleteProduct(p.id)}
-                              style={{ color: 'var(--color-danger)' }}
-                            >
-                              <Trash2 size={15} />
-                            </button>
+
+                            {isMenuOpen && (
+                              <div
+                                className="kebab-menu-popup"
+                                style={{
+                                  right: 0,
+                                  top: isLastRows ? 'auto' : 'calc(100% + 6px)',
+                                  bottom: isLastRows ? 'calc(100% + 6px)' : 'auto',
+                                  minWidth: '160px'
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <button
+                                  type="button"
+                                  className="kebab-menu-item"
+                                  onClick={() => {
+                                    setOpenMenuProductId(null);
+                                    openModal(p);
+                                  }}
+                                >
+                                  <Pencil size={15} style={{ color: 'var(--primary-color)' }} />
+                                  <span>Edit Product</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  className="kebab-menu-item danger"
+                                  onClick={() => {
+                                    setOpenMenuProductId(null);
+                                    handleDeleteProduct(p.id);
+                                  }}
+                                >
+                                  <Trash2 size={15} />
+                                  <span>Delete Product</span>
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -545,14 +494,39 @@ export default function ManageProducts({ products, setProducts }) {
                   </select>
                 </div>
 
-                <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                  <label className="form-label">Opening Quantity *</label>
+                <div className="form-group">
+                  <label className="form-label">Opening Quantity</label>
                   <input 
                     type="number" 
                     className="form-input" 
                     placeholder="Initial warehouse stock, e.g., 100" 
                     value={openingQty}
                     onChange={(e) => setOpeningQty(e.target.value)}
+                    min="0"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Minimum Quantity *</label>
+                  <input 
+                    type="number" 
+                    className="form-input" 
+                    placeholder="Alert threshold, e.g., 10" 
+                    value={minQty}
+                    onChange={(e) => setMinQty(e.target.value)}
+                    min="0"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Maximum Quantity *</label>
+                  <input 
+                    type="number" 
+                    className="form-input" 
+                    placeholder="Maximum capacity, e.g., 100" 
+                    value={maxQty}
+                    onChange={(e) => setMaxQty(e.target.value)}
                     min="0"
                     required
                   />

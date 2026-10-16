@@ -1,6 +1,10 @@
 /* Sidebar Styles */
 .sidebar {
-  width: 280px;
+  width: 300px;
+  min-width: 300px;
+  max-width: 300px;
+  flex-shrink: 0;
+  box-sizing: border-box;
   background-color: var(--bg-sidebar);
   border-right: 1px solid var(--border-color);
   display: flex;
@@ -221,7 +225,9 @@
 /* Responsive sidebar collapse on mobile */
 @media (max-width: 992px) {
   .sidebar {
-    width: 80px;
+    width: 80px !important;
+    min-width: 80px !important;
+    max-width: 80px !important;
   }
   .sidebar .logo-text,
   .sidebar .profile-info,
@@ -229,19 +235,19 @@
   .sidebar .sidebar-link span,
   .sidebar .profile-logout,
   .sidebar .profile-theme-toggle {
-    display: none;
+    display: none !important;
   }
   .sidebar-logo {
-    justify-content: center;
-    padding: 20px 10px;
+    justify-content: center !important;
+    padding: 20px 10px !important;
   }
   .sidebar-link {
-    justify-content: center;
-    padding: 12px;
+    justify-content: center !important;
+    padding: 12px !important;
   }
   .sidebar-profile {
-    justify-content: center;
-    padding: 20px 10px;
+    justify-content: center !important;
+    padding: 20px 10px !important;
   }
 }
 
@@ -336,3 +342,725 @@ h3 {
   padding: 12px 16px !important;
 }
 
+/* Quick item badges in Add Purchase */
+.quick-item-badge:hover {
+  background: rgba(59, 130, 246, 0.12) !important;
+  border-color: rgba(59, 130, 246, 0.45) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.light-theme .quick-item-badge {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+.light-theme .quick-item-badge:hover {
+  background: #eff6ff !important;
+  border-color: #93c5fd !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+/* Custom Date Input and Modern Calendar Icon Badge */
+.date-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.custom-date-input {
+  width: 100%;
+  padding-right: 44px !important;
+  cursor: pointer;
+  position: relative;
+}
+
+/* Hide default browser indicator icon but keep it clickable across the right side */
+.custom-date-input::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 48px;
+  height: 100%;
+  opacity: 0 !important;
+  cursor: pointer;
+  z-index: 3;
+}
+
+/* Clean custom calendar icon without background */
+.custom-date-icon-badge {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--text-secondary);
+  pointer-events: none;
+  z-index: 1;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.date-input-wrapper:hover .custom-date-icon-badge,
+.date-input-wrapper:focus-within .custom-date-icon-badge {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--primary-color);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.light-theme .custom-date-icon-badge {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #64748b;
+}
+
+.light-theme .date-input-wrapper:hover .custom-date-icon-badge,
+.light-theme .date-input-wrapper:focus-within .custom-date-icon-badge {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #1d4ed8;
+}
+
+/* ============================================================
+   Add Purchase - Table Editable Number & Rate Inputs
+   ============================================================ */
+
+/* QTY Stepper Component */
+.table-qty-stepper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 36px;
+  width: 112px;
+  background: rgba(14, 17, 26, 0.6);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 2px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.table-qty-stepper:hover {
+  border-color: rgba(29, 78, 216, 0.4);
+}
+
+.table-qty-stepper:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.qty-stepper-btn {
+  width: 28px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.qty-stepper-btn:hover {
+  background: rgba(29, 78, 216, 0.12);
+  color: var(--primary-color);
+}
+
+.qty-stepper-btn:active {
+  transform: scale(0.92);
+}
+
+.qty-stepper-input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--text-main);
+  outline: none;
+  padding: 0;
+  -moz-appearance: textfield;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Purchase Rate Currency Component */
+.table-rate-box {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  width: 125px;
+  background: rgba(14, 17, 26, 0.6);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0 10px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.table-rate-box:hover {
+  border-color: rgba(29, 78, 216, 0.4);
+}
+
+.table-rate-box:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.rate-currency-tag {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin-right: 6px;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.table-rate-field {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  text-align: right;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--text-main);
+  outline: none;
+  padding: 0;
+  -moz-appearance: textfield;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Hide spin buttons in WebKit & Firefox */
+.qty-stepper-input::-webkit-outer-spin-button,
+.qty-stepper-input::-webkit-inner-spin-button,
+.table-rate-field::-webkit-outer-spin-button,
+.table-rate-field::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Light Theme Overrides */
+.light-theme .table-qty-stepper,
+.light-theme .table-rate-box {
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.12);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.light-theme .table-qty-stepper:hover,
+.light-theme .table-rate-box:hover {
+  background: #f1f5f9;
+  border-color: rgba(29, 78, 216, 0.35);
+}
+
+.light-theme .table-qty-stepper:focus-within,
+.light-theme .table-rate-box:focus-within {
+  background: #ffffff;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.15);
+}
+
+.light-theme .qty-stepper-btn {
+  color: #64748b;
+}
+
+.light-theme .qty-stepper-btn:hover {
+  background: rgba(29, 78, 216, 0.08);
+  color: #1d4ed8;
+}
+
+.light-theme .qty-stepper-input,
+.light-theme .table-rate-field {
+  color: #0f172a;
+}
+
+.light-theme .rate-currency-tag {
+  color: #64748b;
+}
+
+/* ============================================================
+   Redesigned Add Purchase Intake UI
+   ============================================================ */
+
+.add-purchase-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+/* Header Banner */
+.purchase-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 4px;
+}
+
+.purchase-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(29, 78, 216, 0.12);
+  color: #60a5fa;
+  border: 1px solid rgba(29, 78, 216, 0.25);
+  margin-bottom: 8px;
+}
+
+.light-theme .purchase-header-badge {
+  background: rgba(29, 78, 216, 0.08);
+  color: #1d4ed8;
+  border-color: rgba(29, 78, 216, 0.2);
+}
+
+.purchase-page-header-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.purchase-header-icons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.purchase-header-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.purchase-page-title {
+  font-size: 1.85rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.purchase-page-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  margin: 4px 0 0 0;
+  line-height: 1.4;
+}
+
+/* Layout Grid */
+.purchase-grid-layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1200px) {
+  .purchase-grid-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Section Card Header */
+.purchase-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.purchase-card-title-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-icon-pill {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(29, 78, 216, 0.15);
+  color: #60a5fa;
+  flex-shrink: 0;
+}
+
+.light-theme .card-icon-pill {
+  background: rgba(29, 78, 216, 0.1);
+  color: #1d4ed8;
+}
+
+.purchase-card-heading {
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+  color: var(--text-main);
+  margin: 0;
+}
+
+/* Scan Bar */
+.smart-scan-container {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.scan-input-wrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.scan-input-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-muted);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.scan-text-input {
+  width: 100%;
+  padding: 11px 16px 11px 42px;
+  background: rgba(14, 17, 26, 0.6);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  color: var(--text-main);
+  font-size: 0.9rem;
+  transition: all 0.25s ease;
+}
+
+.scan-text-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+  background: rgba(14, 17, 26, 0.85);
+}
+
+.light-theme .scan-text-input {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.12);
+  color: var(--text-main);
+}
+
+.light-theme .scan-text-input:focus {
+  background: #ffffff;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.15);
+}
+
+/* Quick Preset Cards */
+.quick-preset-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+  position: relative;
+}
+
+.quick-preset-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(29, 78, 216, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+
+.light-theme .quick-preset-card {
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+.light-theme .quick-preset-card:hover {
+  background: #ffffff;
+  border-color: rgba(29, 78, 216, 0.35);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+.preset-category-tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.preset-item-name {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.preset-item-details {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+}
+
+.preset-sku-chip {
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text-secondary);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.72rem;
+}
+
+.light-theme .preset-sku-chip {
+  background: rgba(15, 23, 42, 0.06);
+  color: #475569;
+}
+
+.preset-rate-chip {
+  color: var(--color-success);
+  font-weight: 700;
+}
+
+.preset-add-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(29, 78, 216, 0.12);
+  color: #60a5fa;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.quick-preset-card:hover .preset-add-icon {
+  background: var(--primary-color);
+  color: #ffffff;
+  transform: scale(1.08);
+}
+
+.light-theme .preset-add-icon {
+  background: rgba(29, 78, 216, 0.08);
+  color: #1d4ed8;
+}
+
+/* Barcode Quick Pill Buttons */
+.barcode-filter-chip {
+  background: rgba(29, 78, 216, 0.1);
+  border: 1px solid rgba(29, 78, 216, 0.22);
+  color: #60a5fa;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  font-family: monospace;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.barcode-filter-chip:hover {
+  background: rgba(29, 78, 216, 0.2);
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
+}
+
+.light-theme .barcode-filter-chip {
+  background: rgba(29, 78, 216, 0.06);
+  border-color: rgba(29, 78, 216, 0.2);
+  color: #1d4ed8;
+}
+
+.light-theme .barcode-filter-chip:hover {
+  background: rgba(29, 78, 216, 0.12);
+}
+
+/* Sidebar Financials Card */
+.sticky-totals-sidebar {
+  position: sticky;
+  top: 84px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.financials-kpi-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.financials-kpi-chip {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.light-theme .financials-kpi-chip {
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+.kpi-chip-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.kpi-chip-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+  color: var(--text-main);
+}
+
+/* Net Total Highlight Box */
+.net-total-banner {
+  background: linear-gradient(135deg, rgba(29, 78, 216, 0.15) 0%, rgba(124, 58, 237, 0.1) 100%);
+  border: 1px solid rgba(29, 78, 216, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 6px 0 16px 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.light-theme .net-total-banner {
+  background: linear-gradient(135deg, rgba(29, 78, 216, 0.06) 0%, rgba(124, 58, 237, 0.04) 100%);
+  border-color: rgba(29, 78, 216, 0.25);
+}
+
+.net-total-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.net-total-amount {
+  font-size: 1.55rem;
+  font-weight: 800;
+  font-family: var(--font-display);
+  color: var(--primary-color);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Currency input inside sidebar (Tax and Discount) */
+.sidebar-currency-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-currency-prefix {
+  position: absolute;
+  left: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  user-select: none;
+  pointer-events: none;
+}
+
+.sidebar-currency-input {
+  padding-left: 32px !important;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* Full-Width Invoice Document Layout */
+.invoice-doc-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.invoice-header-strip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.bottom-accounting-split {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+@media (max-width: 992px) {
+  .bottom-accounting-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.inwarding-guidelines-box {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(29, 78, 216, 0.06);
+  border: 1px dashed rgba(29, 78, 216, 0.25);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.light-theme .inwarding-guidelines-box {
+  background: rgba(29, 78, 216, 0.04);
+  border-color: rgba(29, 78, 216, 0.2);
+  color: #475569;
+}

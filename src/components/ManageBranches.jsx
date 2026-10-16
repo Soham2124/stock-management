@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Building2,
   MapPin,
@@ -18,15 +18,26 @@ import {
   Lock,
   Hash,
   ShieldCheck,
-  Check
+  MoreVertical,
+  Filter
 } from 'lucide-react';
 
 export default function ManageBranches({ branches, setBranches, onNavigate, onSelectBranch }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [statusToggleBranch, setStatusToggleBranch] = useState(null);
   const [editingBranch, setEditingBranch] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [openMenuBranchId, setOpenMenuBranchId] = useState(null);
+
+  useEffect(() => {
+    const handleOutsideClick = () => setOpenMenuBranchId(null);
+    if (openMenuBranchId !== null) {
+      window.addEventListener('click', handleOutsideClick);
+      return () => window.removeEventListener('click', handleOutsideClick);
+    }
+  }, [openMenuBranchId]);
 
   // Modal form states
   const [branchName, setBranchName] = useState('');
@@ -85,11 +96,17 @@ export default function ManageBranches({ branches, setBranches, onNavigate, onSe
     }));
   };
 
-  const filteredBranches = branches.filter(b =>
-    b.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    b.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    b.location.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredBranches = branches.filter(b => {
+    const matchesSearch = 
+      b.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      b.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      b.location.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = 
+      statusFilter === 'ALL' || b.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="manage-branches-view animate-fadeIn">
@@ -144,24 +161,53 @@ export default function ManageBranches({ branches, setBranches, onNavigate, onSe
 
       {/* Main filter and table box */}
       <div className="glass-card">
-        <div className="flex-between" style={{ marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: '600' }}>All Registered Branches</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
           {/* Search bar */}
-          <div style={{ position: 'relative', width: '260px' }}>
+          <div style={{ position: 'relative', flex: '1', minWidth: '240px' }}>
             <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
             <input
               type="text"
               className="form-input"
-              placeholder="Search branch by name..."
+              placeholder="Search branch by name, code, location..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ paddingLeft: '36px', height: '40px' }}
+              style={{ width: '100%', paddingLeft: '36px', height: '40px' }}
             />
+          </div>
+
+          {/* Filter icon indicator */}
+          <div style={{ display: 'flex', alignItems: 'center', color: '#94A3B8', padding: '0 2px' }} title="Filter">
+            <Filter size={18} strokeWidth={1.8} style={{ color: '#94A3B8' }} />
+          </div>
+
+          {/* Status Segmented Filter (All / Active / Inactive) with hover effect */}
+          <div className="segmented-control">
+            <button
+              type="button"
+              className={`segmented-btn ${statusFilter === 'ALL' ? 'active' : ''}`}
+              onClick={() => setStatusFilter('ALL')}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              className={`segmented-btn ${statusFilter === 'ACTIVE' ? 'active' : ''}`}
+              onClick={() => setStatusFilter('ACTIVE')}
+            >
+              Active
+            </button>
+            <button
+              type="button"
+              className={`segmented-btn ${statusFilter === 'INACTIVE' ? 'active' : ''}`}
+              onClick={() => setStatusFilter('INACTIVE')}
+            >
+              Inactive
+            </button>
           </div>
         </div>
 
         {/* Table representation */}
-        <div className="table-container">
+        <div className="table-container" style={{ minHeight: '320px' }}>
           <table className="custom-table">
             <thead>
               <tr>
@@ -176,78 +222,143 @@ export default function ManageBranches({ branches, setBranches, onNavigate, onSe
             </thead>
             <tbody>
               {filteredBranches.length > 0 ? (
-                filteredBranches.map(branch => (
-                  <tr
-                    key={branch.id}
-                    onClick={() => onSelectBranch && onSelectBranch(branch)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ padding: '8px', background: 'rgba(29, 78, 216, 0.1)', borderRadius: '8px', border: 'none', color: 'var(--primary-color)' }}>
-                          <Building2 size={16} />
+                filteredBranches.map((branch, index) => {
+                  const isMenuOpen = openMenuBranchId === branch.id;
+                  const isLastRows = index >= filteredBranches.length - 2 && filteredBranches.length > 2;
+
+                  return (
+                    <tr
+                      key={branch.id}
+                      style={{
+                        position: isMenuOpen ? 'relative' : undefined,
+                        zIndex: isMenuOpen ? 50 : undefined
+                      }}
+                    >
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{ padding: '8px', background: 'rgba(29, 78, 216, 0.1)', borderRadius: '8px', border: 'none', color: 'var(--primary-color)' }}>
+                            <Building2 size={16} />
+                          </div>
+                          <span style={{ fontWeight: '600', color: '#fff', fontSize: '0.95rem' }}>{branch.name}</span>
                         </div>
-                        <span style={{ fontWeight: '600', color: '#fff', fontSize: '0.95rem' }}>{branch.name}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="branch-code">
-                        {branch.code}
-                      </span>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
-                        <MapPin size={14} style={{ color: 'var(--text-muted)' }} />
-                        <span>{branch.location}</span>
-                      </div>
-                    </td>
-                    <td>
-                      {branch.stockStatus.includes('LOW') ? (
-                        <span className="badge badge-danger">Low Stock</span>
-                      ) : (
-                        <span className="badge badge-success">Normal</span>
-                      )}
-                    </td>
-                    <td style={{ color: branch.pendingRequests > 0 ? 'var(--color-warning)' : 'var(--text-muted)' }}>
-                      {branch.pendingRequests > 0 ? `${branch.pendingRequests} Requests` : '0 Requests'}
-                    </td>
-                    <td>
-                      <span className={`badge ${branch.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'}`}>
-                        {branch.status}
-                      </span>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                        <button
-                          className="btn btn-secondary btn-icon-only"
-                          title="Login to Branch console"
-                          style={{ color: 'var(--primary-color)' }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <LogIn size={15} />
-                        </button>
-                        <button
-                          className="btn btn-secondary btn-icon-only"
-                          title="Edit branch parameters"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenEditModal(branch);
-                          }}
-                        >
-                          <Pencil size={15} />
-                        </button>
-                        <button
-                          className="btn btn-secondary btn-icon-only"
-                          title={branch.status === 'ACTIVE' ? 'Disable Branch' : 'Enable Branch'}
-                          onClick={(e) => { e.stopPropagation(); setStatusToggleBranch(branch); }}
-                          style={{ color: branch.status === 'ACTIVE' ? 'var(--color-success)' : 'var(--color-danger)' }}
-                        >
-                          <Power size={15} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td>
+                        <span className="branch-code">
+                          {branch.code}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
+                          <MapPin size={14} style={{ color: 'var(--text-muted)' }} />
+                          <span>{branch.location}</span>
+                        </div>
+                      </td>
+                      <td>
+                        {branch.stockStatus.includes('LOW') ? (
+                          <span className="badge badge-danger">Low Stock</span>
+                        ) : (
+                          <span className="badge badge-success">Normal</span>
+                        )}
+                      </td>
+                      <td style={{ color: branch.pendingRequests > 0 ? 'var(--color-warning)' : 'var(--text-muted)' }}>
+                        {branch.pendingRequests > 0 ? `${branch.pendingRequests} Requests` : '0 Requests'}
+                      </td>
+                      <td>
+                        <span className={`badge ${branch.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'}`}>
+                          {branch.status}
+                        </span>
+                      </td>
+                      <td style={{ position: 'relative', textAlign: 'right' }} onClick={(e) => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', position: 'relative' }}>
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-icon-only"
+                            title="Actions"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuBranchId(prev => prev === branch.id ? null : branch.id);
+                            }}
+                            style={{
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '8px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: isMenuOpen ? 'rgba(59, 130, 246, 0.15)' : undefined,
+                              borderColor: isMenuOpen ? 'var(--primary-color)' : undefined,
+                              color: isMenuOpen ? 'var(--primary-color)' : 'var(--text-secondary)'
+                            }}
+                          >
+                            <MoreVertical size={16} />
+                          </button>
+
+                          {isMenuOpen && (
+                            <div
+                              className="kebab-menu-popup"
+                              style={{
+                                right: 0,
+                                top: isLastRows ? 'auto' : 'calc(100% + 6px)',
+                                bottom: isLastRows ? 'calc(100% + 6px)' : 'auto'
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <button
+                                type="button"
+                                className="kebab-menu-item"
+                                onClick={() => {
+                                  setOpenMenuBranchId(null);
+                                  if (onSelectBranch) onSelectBranch(branch);
+                                }}
+                              >
+                                <Eye size={15} style={{ color: 'var(--primary-color)' }} />
+                                <span>View Details</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                className="kebab-menu-item"
+                                onClick={() => {
+                                  setOpenMenuBranchId(null);
+                                  alert(`Redirecting to console login for ${branch.name}...`);
+                                }}
+                              >
+                                <LogIn size={15} style={{ color: '#2563eb' }} />
+                                <span>Console Login</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                className="kebab-menu-item"
+                                onClick={() => {
+                                  setOpenMenuBranchId(null);
+                                  handleOpenEditModal(branch);
+                                }}
+                              >
+                                <Pencil size={15} style={{ color: '#f59e0b' }} />
+                                <span>Edit Parameters</span>
+                              </button>
+
+                              <div className="kebab-menu-divider" />
+
+                              <button
+                                type="button"
+                                className={`kebab-menu-item ${branch.status === 'ACTIVE' ? 'danger' : 'success'}`}
+                                onClick={() => {
+                                  setOpenMenuBranchId(null);
+                                  setStatusToggleBranch(branch);
+                                }}
+                              >
+                                <Power size={15} />
+                                <span>{branch.status === 'ACTIVE' ? 'Disable Branch' : 'Enable Branch'}</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan="7" style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>

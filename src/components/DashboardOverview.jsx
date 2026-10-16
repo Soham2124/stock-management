@@ -302,7 +302,7 @@ export default function DashboardOverview({
   };
 
   return (
-    <div className="dashboard-view sa-animate-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div className="dashboard-view sa-animate-in" style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
       
       {/* Optional Error Alert Banner */}
       {errorMessage && (
@@ -329,7 +329,7 @@ export default function DashboardOverview({
       <div style={{ 
         display: "grid", 
         gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
-        gap: "16px"
+        gap: "25px"
       }}>
         {/* Card 1: Total Branches */}
         <StatCard 
@@ -417,7 +417,7 @@ export default function DashboardOverview({
         style={{ 
           display: "grid", 
           gridTemplateColumns: activeFilter === "ALL" ? "repeat(2, 1fr)" : "1fr", 
-          gap: "20px" 
+          gap: "25px" 
         }}
       >
 

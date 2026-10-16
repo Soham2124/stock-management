@@ -68,9 +68,9 @@ export default function App() {
   ]);
 
   const [products, setProducts] = useState([
-    { id: 1, sku: 'SKU-PAPER-R', name: 'Premium Thermal Paper', brand: 'DeviSoft', category: 'Consumables', variant: 'Single Roll', purchaseRate: 15.00, saleRate: 25.00, barcode: '12345', baseUnit: 'Piece', openingQty: 120, asOnDate: '2026-08-20' },
-    { id: 2, sku: 'SKU-BOX-M', name: 'Cardboard Storage Box', brand: 'Packager', category: 'Packaging', variant: 'Medium Box', purchaseRate: 5.50, saleRate: 10.00, barcode: 'SKU-BOX-M', baseUnit: 'Piece', openingQty: 45, asOnDate: '2026-08-21' },
-    { id: 3, sku: 'SKU-ROLL-X', name: 'Heavy Duty Packaging Roll', brand: 'LogiWrap', category: 'Wrapping', variant: '10-roll Pack', purchaseRate: 35.00, saleRate: 60.00, barcode: 'SKU-ROLL-X', baseUnit: 'Box', openingQty: 18, asOnDate: '2026-08-22' }
+    { id: 1, sku: 'SKU-PAPER-R', name: 'Premium Thermal Paper', brand: 'DeviSoft', category: 'Consumables', variant: 'Single Roll', purchaseRate: 15.00, saleRate: 25.00, barcode: '12345', baseUnit: 'Piece', openingQty: 120, minQty: 20, maxQty: 200, asOnDate: '2026-08-20' },
+    { id: 2, sku: 'SKU-BOX-M', name: 'Cardboard Storage Box', brand: 'Packager', category: 'Packaging', variant: 'Medium Box', purchaseRate: 5.50, saleRate: 10.00, barcode: 'SKU-BOX-M', baseUnit: 'Piece', openingQty: 45, minQty: 10, maxQty: 100, asOnDate: '2026-08-21' },
+    { id: 3, sku: 'SKU-ROLL-X', name: 'Heavy Duty Packaging Roll', brand: 'LogiWrap', category: 'Wrapping', variant: '10-roll Pack', purchaseRate: 35.00, saleRate: 60.00, barcode: 'SKU-ROLL-X', baseUnit: 'Box', openingQty: 18, minQty: 5, maxQty: 50, asOnDate: '2026-08-22' }
   ]);
 
   const [vendors, setVendors] = useState([
@@ -79,9 +79,49 @@ export default function App() {
   ]);
 
   const [purchases, setPurchases] = useState([
-    { id: 'PUR-1003', invoiceNo: '96', vendorName: 'Desai Distributors', date: '2026-08-25', itemsCount: 35, totalAmount: 718.00, paymentStatus: 'Paid', status: 'Received' },
-    { id: 'PUR-1002', invoiceNo: 'INV-402', vendorName: 'Laxmi Packaging Ltd', date: '2026-08-24', itemsCount: 150, totalAmount: 825.00, paymentStatus: 'Paid', status: 'Received' },
-    { id: 'PUR-1001', invoiceNo: 'INV-02', vendorName: 'Desai Distributors', date: '2026-08-20', itemsCount: 40, totalAmount: 600.00, paymentStatus: 'Pending', status: 'Received' }
+    { 
+      id: 'PUR-1003', 
+      invoiceNo: '96', 
+      vendorName: 'Desai Distributors', 
+      vendorPhone: '+91 98765 43210',
+      date: '2026-08-25', 
+      itemsCount: 35, 
+      totalAmount: 718.00, 
+      paymentStatus: 'Paid', 
+      status: 'Received',
+      items: [
+        { productId: 1, name: 'Premium Thermal Paper', sku: 'SKU-PAPER-R', unit: 'Piece', qty: 25, rate: 15.00 },
+        { productId: 2, name: 'Cardboard Storage Box', sku: 'SKU-BOX-M', unit: 'Piece', qty: 10, rate: 34.30 }
+      ]
+    },
+    { 
+      id: 'PUR-1002', 
+      invoiceNo: 'INV-402', 
+      vendorName: 'Laxmi Packaging Ltd', 
+      vendorPhone: '+91 98765 01234',
+      date: '2026-08-24', 
+      itemsCount: 150, 
+      totalAmount: 825.00, 
+      paymentStatus: 'Pending', 
+      status: 'Pending Arrival',
+      items: [
+        { productId: 2, name: 'Cardboard Storage Box', sku: 'SKU-BOX-M', unit: 'Piece', qty: 150, rate: 5.50 }
+      ]
+    },
+    { 
+      id: 'PUR-1001', 
+      invoiceNo: 'INV-02', 
+      vendorName: 'Desai Distributors', 
+      vendorPhone: '+91 98765 43210',
+      date: '2026-08-20', 
+      itemsCount: 40, 
+      totalAmount: 600.00, 
+      paymentStatus: 'Pending', 
+      status: 'Received',
+      items: [
+        { productId: 1, name: 'Premium Thermal Paper', sku: 'SKU-PAPER-R', unit: 'Piece', qty: 40, rate: 15.00 }
+      ]
+    }
   ]);
 
   const [ledger, setLedger] = useState([
@@ -174,9 +214,19 @@ export default function App() {
         return <ManageProducts products={products} setProducts={setProducts} />;
       case 'vendors':
         return <ManageVendors vendors={vendors} setVendors={setVendors} />;
-      case 'add-purchase':
+      case 'purchase-list':
+        return (
+          <PurchaseList 
+            purchases={purchases} 
+            setPurchases={setPurchases} 
+            vendors={vendors} 
+            onNavigate={setCurrentTab} 
+          />
+        );
+      case 'purchase-order-form':
         return (
           <AddPurchase 
+            mode="order"
             products={products} 
             setProducts={setProducts} 
             vendors={vendors} 
@@ -186,8 +236,20 @@ export default function App() {
             onNavigate={setCurrentTab}
           />
         );
-      case 'purchase-list':
-        return <PurchaseList purchases={purchases} setPurchases={setPurchases} />;
+      case 'add-purchase':
+      case 'add-purchase-form':
+        return (
+          <AddPurchase 
+            mode="purchase"
+            products={products} 
+            setProducts={setProducts} 
+            vendors={vendors} 
+            purchases={purchases} 
+            setPurchases={setPurchases} 
+            addLedgerEntry={addLedgerEntry}
+            onNavigate={setCurrentTab}
+          />
+        );
       case 'stock-report':
         return <StockReport products={products} branches={branches} ledger={ledger} />;
       case 'review-requests':
@@ -236,7 +298,7 @@ export default function App() {
       <aside className="sidebar">
         <div className="sidebar-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Package size={22} style={{ color: '#1D4ED8', flexShrink: 0 }} />
-          <span style={{ 
+          <span className="logo-text" style={{ 
             fontFamily: 'var(--font-display)',
             fontWeight: '700',
             fontSize: '1.25rem',
@@ -296,23 +358,23 @@ export default function App() {
           </li>
           <li>
             <button 
-              onClick={() => navigate('add-purchase')}
-              className={`sidebar-link ${currentTab === 'add-purchase' ? 'active' : ''}`}
+              onClick={() => navigate('purchase-list')}
+              className={`sidebar-link ${currentTab === 'purchase-list' || currentTab === 'purchase-order-form' ? 'active' : ''}`}
             >
               <div className="sidebar-link-inner">
-                <Receipt size={18} className="logo-icon-active" />
-                <span>Add Purchase</span>
+                <ShoppingBag size={18} className="logo-icon-active" />
+                <span>Purchase Orders</span>
               </div>
             </button>
           </li>
           <li>
             <button 
-              onClick={() => navigate('purchase-list')}
-              className={`sidebar-link ${currentTab === 'purchase-list' ? 'active' : ''}`}
+              onClick={() => navigate('add-purchase')}
+              className={`sidebar-link ${currentTab === 'add-purchase' || currentTab === 'add-purchase-form' ? 'active' : ''}`}
             >
               <div className="sidebar-link-inner">
-                <ShoppingBag size={18} className="logo-icon-active" />
-                <span>Purchase List</span>
+                <Receipt size={18} className="logo-icon-active" />
+                <span>Add Purchase</span>
               </div>
             </button>
           </li>
